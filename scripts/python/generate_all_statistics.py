@@ -28,10 +28,10 @@ def main():
     # mark the type of experiment
     bam_type = args.type
 
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         cluster_counts_dpm = []
         read_counts_dpm = []
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         cluster_counts_rpm = []
         read_counts_rpm = []
     cluster_counts_bpm = []
@@ -42,13 +42,21 @@ def main():
     ecdf_counts_ax = "None"
 
     for f in files:
-        if bam_type.lower() == "dpm":
+        if "dpm" in bam_type.lower() and "rpm" in bam_type.lower():
+            ecdf_plot_ax, ecdf_counts_ax, df1_dpm, df2_dpm, df1_rpm, df2_rpm, df1_bpm, df2_bpm = generate_statistics(f, 
+                ecdf_plot_ax, ecdf_counts_ax, args.xlim, args.directory, bam_type)
+            cluster_counts_dpm.append(df1_dpm)
+            read_counts_dpm.append(df2_dpm)
+            cluster_counts_rpm.append(df1_rpm)
+            read_counts_rpm.append(df2_rpm)
+
+        elif "dpm" in bam_type.lower():
             ecdf_plot_ax, ecdf_counts_ax, df1_dpm, df2_dpm, df1_bpm, df2_bpm = generate_statistics(f, 
                 ecdf_plot_ax, ecdf_counts_ax, args.xlim, args.directory, bam_type)
             cluster_counts_dpm.append(df1_dpm)
             read_counts_dpm.append(df2_dpm)
 
-        elif bam_type.lower() == "rpm":
+        elif "rpm" in bam_type.lower():
             ecdf_plot_ax, ecdf_counts_ax, df1_rpm, df2_rpm, df1_bpm, df2_bpm = generate_statistics(f, 
                 ecdf_plot_ax, ecdf_counts_ax, args.xlim, args.directory, bam_type)
             cluster_counts_rpm.append(df1_rpm)
@@ -66,7 +74,7 @@ def main():
         args.directory + "/Max_representation_counts.pdf", bbox_inches="tight"
     )
 
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         cluster_df_dpm = pd.concat(cluster_counts_dpm, axis=1).transpose()
         read_df_dpm = pd.concat(read_counts_dpm, axis=1).transpose()
         cluster_fig = plot_profile(cluster_df_dpm)
@@ -80,7 +88,7 @@ def main():
             bbox_inches="tight",
         )
     
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         cluster_df_rpm = pd.concat(cluster_counts_rpm, axis=1).transpose()
         read_df_rpm = pd.concat(read_counts_rpm, axis=1).transpose()
         cluster_fig = plot_profile(cluster_df_rpm)
@@ -116,9 +124,9 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     """
     # count statistics
     cluster = 0
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         dpm = 0
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         rpm = 0
     bpm = 0
     barcodes = set()
@@ -131,10 +139,10 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     # get bead size distribution
     # count bpm and dpm at the same time
     bins = np.array([0, 1, 5, 10, 20, 50, 100, 200])  # bins with data are 1-8
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         cluster_counts_dpm = defaultdict(int)
         read_counts_dpm = defaultdict(int)
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         cluster_counts_rpm = defaultdict(int)
         read_counts_rpm = defaultdict(int)
     cluster_counts_bpm = defaultdict(int)
@@ -142,9 +150,9 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
 
     # the cluster dictionaries
     beads_dict = defaultdict(set)
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         dpm_dict = defaultdict(int)
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         rpm_dict = defaultdict(int)
 
     count = 0
@@ -169,11 +177,11 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     for bin in np.arange(
         1, len(bins) + 1
     ):  # initialize all bins in case any end up being empty categories
-        if bam_type.lower() == "dpm":
+        if "dpm" in bam_type.lower():
             cluster_counts_dpm[bin] = 0
             read_counts_dpm[bin] = 0
 
-        elif bam_type.lower() == "rpm":
+        if "rpm" in bam_type.lower():
             cluster_counts_rpm[bin] = 0
             read_counts_rpm[bin] = 0
 
@@ -198,7 +206,7 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
         read_counts_bpm[bin_bpm] += count_beads
     
     # get bead size distribution
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         for bc in dpm_dict.keys():
             count_dpm = dpm_dict[bc]
             if bc not in barcodes:
@@ -207,7 +215,7 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
             bin_dpm = np.digitize(count_dpm, bins, right=True)
             cluster_counts_dpm[bin_dpm] += 1
             read_counts_dpm[bin_dpm] += count_dpm
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         for bc in rpm_dict.keys():
             count_rpm = rpm_dict[bc]
             if bc not in barcodes:
@@ -222,9 +230,9 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     print("For bamfile ", bamfile)
     print("Total number of clusters: ", cluster)
     print("Total number of BPM: ", bpm)
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         print("Total number of DPM: ", dpm)
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         print("Total number of RPM: ", rpm)
 
     filepath = os.path.join(dir, "cluster_statistics.txt")
@@ -232,9 +240,9 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     f.write("For bamfile " + str(bamfile) + "\n")
     f.write("Total number of clusters: " + str(cluster) + "\n")
     f.write("Total number of BPM: " + str(bpm) + "\n")
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         f.write("Total number of DPM: " + str(dpm) + "\n")
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         f.write("Total number of RPM: " + str(rpm) + "\n")
     f.close()
 
@@ -254,13 +262,13 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     ax2.legend()
 
     # get bead size distribution
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower():
         df_cluster_counts_dpm = pd.DataFrame.from_dict(cluster_counts_dpm, orient="index")
         df_cluster_counts_dpm.columns = [bamfile.rsplit("/", 1)[-1].rsplit(".bam")[0]]
         df_read_counts_dpm = pd.DataFrame.from_dict(read_counts_dpm, orient="index")
         df_read_counts_dpm.columns = [bamfile.rsplit("/", 1)[-1].rsplit(".bam")[0]]
 
-    elif bam_type.lower() == "rpm":
+    if "rpm" in bam_type.lower():
         df_cluster_counts_rpm = pd.DataFrame.from_dict(cluster_counts_rpm, orient="index")
         df_cluster_counts_rpm.columns = [bamfile.rsplit("/", 1)[-1].rsplit(".bam")[0]]
         df_read_counts_rpm = pd.DataFrame.from_dict(read_counts_rpm, orient="index")
@@ -271,9 +279,11 @@ def generate_statistics(bamfile, ax1, ax2, xlimit, dir, bam_type):
     df_read_counts_bpm = pd.DataFrame.from_dict(read_counts_bpm, orient="index")
     df_read_counts_bpm.columns = [bamfile.rsplit("/", 1)[-1].rsplit(".bam")[0]]
 
-    if bam_type.lower() == "dpm":
+    if "dpm" in bam_type.lower() and "rpm" in bam_type.lower():
+        return ax1, ax2, df_cluster_counts_dpm, df_read_counts_dpm, df_cluster_counts_rpm, df_read_counts_rpm, df_cluster_counts_bpm, df_read_counts_bpm
+    elif "dpm" in bam_type.lower():
         return ax1, ax2, df_cluster_counts_dpm, df_read_counts_dpm, df_cluster_counts_bpm, df_read_counts_bpm
-    elif bam_type.lower() == "rpm":
+    elif "rpm" in bam_type.lower():
         return ax1, ax2, df_cluster_counts_rpm, df_read_counts_rpm, df_cluster_counts_bpm, df_read_counts_bpm
 
 def plot_profile(df):
@@ -315,7 +325,7 @@ def parse_arguments():
         "--type",
         action="store",
         required=True,
-        help="The type of bam file, either dpm or rpm"
+        help="The type of bam file, either dpm, rpm, or dpm rpm"
     )
 
     return parser.parse_args()

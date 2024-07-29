@@ -160,7 +160,7 @@ def main():
                 barcodes = pattern.findall(qname.split('::')[1])
                 if counter % 10000 == 0:
                     print(counter)
-                if "NOT_FOUND" in barcodes[1:]:
+                if "NOT_FOUND" in barcodes:
                     incomplete += 1
                     short_out.write(qname + "\n" + seq + "\n" + thrd + "\n" + qual + "\n")
                 else:
@@ -183,12 +183,12 @@ def main():
                     elif "DPM" in qname:
                         dpm_count += 1
                         dpm_out.write(qname + "\n" + seq + "\n" + thrd + "\n" + qual + "\n")
+                    elif "RPM" in qname:
+                        rpm_count += 1
+                        rpm_out.write(qname + "\n" + seq + "\n" + thrd + "\n" + qual + "\n")
                     elif "BEAD" in qname:
                         bpm_count += 1
                         bpm_out.write(qname + "\n" + seq + "\n" + thrd + "\n" + qual + "\n")
-                    else:
-                        rpm_count += 1
-                        rpm_out.write(qname + "\n" + seq + "\n" + thrd + "\n" + qual + "\n")
         
     print("Reads without full barcode:", incomplete)
     print("DPM reads out:", dpm_count)

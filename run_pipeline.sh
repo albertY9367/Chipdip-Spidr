@@ -2,7 +2,7 @@
 
 snakemake \
 -n \
---snakefile Snakefile_bam_merge.smk \
+--snakefile Snakefile \
 --configfile settings_rna/config_rna.yaml \
 --use-conda \
 --conda-frontend conda \
