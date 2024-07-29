@@ -1,0 +1,6 @@
+{
+    "sample_drna": {
+      "R1": ["/home/zyang4/chipdip-spidr/data_both/sample_drna_R1.fastq.gz"],
+      "R2": ["/home/zyang4/chipdip-spidr/data_both/sample_drna_R2.fastq.gz"]
+    }
+}

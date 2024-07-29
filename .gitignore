@@ -1,0 +1,5 @@
+.snakemake/
+workup/
+workup_dna/
+workup_rna/
+workup_rna_dna/
