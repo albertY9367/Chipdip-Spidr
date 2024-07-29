@@ -1,10 +1,10 @@
 {
     "sample1": {
-      "R1": ["data_chip/sample1_R1.fastq.gz"],
-      "R2": ["data_chip/sample1_R2.fastq.gz"]
+      "R1": ["data_dna/sample1_R1.fastq.gz"],
+      "R2": ["data_dna/sample1_R2.fastq.gz"]
     },
     "sample2": {
-      "R1": ["data_chip/sample2_R1.fastq.gz"],
-      "R2": ["data_chip/sample2_R2.fastq.gz"]
+      "R1": ["data_dna/sample2_R1.fastq.gz"],
+      "R2": ["data_dna/sample2_R2.fastq.gz"]
     }
 }
