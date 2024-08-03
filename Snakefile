@@ -66,7 +66,7 @@ def get_num_tags(path_config):
                 break
             line = line.strip().upper()
             if line.startswith("READ1") or line.startswith("READ2"):
-                num_tags += line.count("DPM") + line.count("ODD") + line.count("EVEN") + line.count("Y")
+                num_tags += line.count("DPM") + line.count("ODD") + line.count("EVEN") + line.count("Y") + line.count("LIGTAG")
             n_lines_processed += 1
     return num_tags
 
@@ -434,11 +434,11 @@ MERGE_BEAD = expand(
 if dna and rna:
     if single_end:
         MERGE_SAMP = [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
-            os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
+            os.path.join(DIR_WORKUP, "alignments/{sample}.merged.single.RPM.bam"),
             os.path.join(DIR_WORKUP, "alignments/{sample}.merged.BPM.bam")]
     else:
         MERGE_SAMP = [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
-            os.path.join(DIR_WORKUP, "alignments/{sample}.merged.single.RPM.bam"),
+            os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
             os.path.join(DIR_WORKUP, "alignments/{sample}.merged.BPM.bam")]
 elif dna:
     MERGE_SAMP = [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
@@ -932,7 +932,7 @@ rule merge_dna:
         '''
         mkdir -p {params.dir}
         samtools merge -@ {threads} "{output.untagged}" {input} &> "{log}"
-        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" &>> "{log}"
+        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" --kind "{choose_dna_rna}" &>> "{log}"
         '''
 
 ################################################################################
@@ -1045,8 +1045,8 @@ rule add_chr:
         "envs/sprite.yaml"
     shell:
         '''
-        python {add_chr} -i {input.star} -o {output.star} &> {log}
-        python {add_chr_bt2} -i {input.bt2} -o {output.bt2}
+        python {add_chr} -i {input.star} -o {output.star} --kind "{choose_dna_rna}" &> {log}
+        python {add_chr_bt2} -i {input.bt2} -o {output.bt2} --kind "{choose_dna_rna}"
         '''
     # temporarily not use assembly
 
@@ -1069,7 +1069,7 @@ rule merge_rna:
         '''
         mkdir -p {params.dir}
         (samtools merge -@ {threads} {output.untagged} {input.bt2} {input.star}) &> {log}
-        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" &>> "{log}"
+        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" --kind "{choose_dna_rna}" &>> "{log}"
         samtools index {output.tagged}
         '''
 
@@ -1174,8 +1174,8 @@ rule add_chr_single:
         "envs/sprite.yaml"
     shell:
         '''
-        python {add_chr} -i {input.star} -o {output.star} &> {log}
-        python {add_chr_bt2} -i {input.bt2} -o {output.bt2}
+        python {add_chr} -i {input.star} -o {output.star} --kind "{choose_dna_rna}" &> {log}
+        python {add_chr_bt2} -i {input.bt2} -o {output.bt2} --kind "{choose_dna_rna}"
         '''
 
 rule merge_rna_single:
@@ -1197,7 +1197,7 @@ rule merge_rna_single:
         '''
         mkdir -p {params.dir}
         (samtools merge -@ {threads} {output.untagged} {input.bt2} {input.star}) &> {log}
-        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" &>> "{log}"
+        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" --kind "{choose_dna_rna}" &>> "{log}"
         samtools index {output.tagged}
         '''
         
@@ -1247,7 +1247,7 @@ rule merge_beads:
         '''
         mkdir -p {params.dir}
         samtools merge -@ {threads} -o "{output.untagged}" {input} &> "{log}"
-        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" &>> "{log}"
+        python "{tag_bam}" --input_bam "{output.untagged}" --output_bam "{output.tagged}" --num_tags "{num_tags}" --kind "{choose_dna_rna}" &>> "{log}"
         '''
 
 ##############################################################################

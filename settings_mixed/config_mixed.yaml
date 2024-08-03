@@ -2,11 +2,11 @@
 email: ""
 
 # Path to barcoding config file
-bID: "config.txt"
+bID: "settings_mixed/config_mixed.txt"
 # Path to barcoding format file
 # format: "example_format.txt"
 # Path to samples JSON file, e.g., as produced with the fastq2json.py script
-samples: "samples.json"
+samples: "settings_mixed/samples_mixed.json"
 
 # Scripts directory
 scripts_dir: "scripts/"

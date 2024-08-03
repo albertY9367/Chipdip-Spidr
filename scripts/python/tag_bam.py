@@ -36,13 +36,23 @@ def parse_args():
         required=True,
         help="Number of tags in barcode",
     )
+    parser.add_argument(
+        "--kind",
+        dest="kind",
+        type=str,
+        required=True,
+        help="Kind of data",
+    )
 
     return parser.parse_args()
 
 def main():
     args = parse_args()
     print("Writing tagged bam to: ", args.output_bam)
-    label_bam_file(args.input_bam, args.output_bam, args.num_tags)
+    if "dna" in args.kind and "rna" in args.kind:
+        label_bam_file_mixed(args.input_bam, args.output_bam, args.num_tags)
+    else:
+        label_bam_file(args.input_bam, args.output_bam, args.num_tags)
 
 def label_bam_file(input_bam, output_bam, num_tags):
     """
@@ -69,6 +79,57 @@ def label_bam_file(input_bam, output_bam, num_tags):
             read_type = rt_pattern.findall(full_barcode[0])[0]
             barcode = full_barcode[1:]
             ref_barcode = ".".join(barcode)
+            if "DPM" in read_type:
+                position = str(read.reference_name) + ":" + str(read.reference_start) + '-' + str(read.reference_end)
+            elif "RPM" in read_type:
+                position = str(read.reference_name) + ":" + str(read.reference_start)
+            elif "BPM" in read_type or "BEAD" in read_type:
+                position = read.reference_name + ":" + str(read.reference_start) + '-' + str(0)
+            if position in found[ref_barcode]:
+                duplicates += 1
+            else:
+                try:
+                    found[ref_barcode].add(position)
+                    read.set_tag("RT", read_type, replace=True)
+                    read.set_tag("RC", ref_barcode, replace=True)
+                    out_bam.write(read)
+                    written += 1
+                except KeyError:
+                    skipped += 1
+
+    # sort bam file by barcode
+    # pysam.sort("-t", "BC", "-o", output_bam, output_bam)
+    print("Total reads:", count)
+    print("Reads written:", written)
+    print("Duplicate reads:", duplicates)
+    print("Reads with an error not written out:", skipped)
+
+def label_bam_file_mixed(input_bam, output_bam, num_tags):
+    """
+    Add antibody label to individual reads of the master DNA bam file
+
+    Args:
+        input_bam(str): Path to input master bam file
+        output_bam(str): Path to write labeled bam file
+        num_tags(int): number of tags in barcode
+    """
+    count, written, duplicates, skipped = 0, 0, 0, 0
+    pattern = re.compile("::" + num_tags * "\[([a-zA-Z0-9_\-]+)\]")
+    rt_pattern = re.compile(r"RPM|BPM|DPM|BEAD")
+    found = defaultdict(set)
+    with pysam.AlignmentFile(input_bam, "rb") as in_bam, \
+         pysam.AlignmentFile(output_bam, "wb", template=in_bam) as out_bam:
+        for read in in_bam.fetch(until_eof=True):
+            count += 1
+            if count % 100000 == 0:
+                print(count)
+            name = read.query_name
+            match = pattern.search(name)
+            full_barcode = list(match.groups())
+            barcode = full_barcode[1:-1]
+            ref_barcode = ".".join(barcode)
+            full_barcode_str = ".".join(full_barcode)
+            read_type = rt_pattern.findall(full_barcode_str)[0]
             if "DPM" in read_type:
                 position = str(read.reference_name) + ":" + str(read.reference_start) + '-' + str(read.reference_end)
             elif "RPM" in read_type:

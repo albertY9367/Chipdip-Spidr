@@ -35,4 +35,4 @@ max_size: 10000
 
 conda_env: "chipdip"
 choose_dna_rna: "rna"
-single_end: true
+single_end: false

@@ -21,6 +21,8 @@ def parse_arguments():
                         choices = ["mm9", "mm10", "hg19", "hg38", "none"],
                         default = "none",
                         help = "The genome assembly. (default mm9)")
+    parser.add_argument("--kind", dest="kind", type=str,
+                        help = "Whether original data is SPIDR-like or mixed")
     return parser.parse_args()
 
 
@@ -84,22 +86,30 @@ def filter_reads(args):
         if args.assembly == 'none':
             output_file = pysam.AlignmentFile(args.output, "wb", template = input_file)
             for read in input_file.fetch(until_eof = True):
-                if "NOT_FOUND" in read.query_name:
-                    read.query_name = read.query_name.replace('NOT_FOUND', 'RPM')
+                if "dna" in args.kind.lower() and "rna" in args.kind.lower():
                     output_file.write(read)
                     out_count += 1
-                else:
-                    filtered_count += 1
+                elif "rna" in args.kind.lower():
+                    if "NOT_FOUND" in read.query_name:
+                        read.query_name = read.query_name.replace('NOT_FOUND', 'RPM')
+                        output_file.write(read)
+                        out_count += 1
+                    else:
+                        filtered_count += 1
         else:
             output_file = pysam.AlignmentFile(args.output, "wb", header = bam_header)
             for read in input_file.fetch():
-                ref_name = read.reference_name if 'chr' in read.reference_name else 'chr' + read.reference_name 
-                if "NOT_FOUND" in read.query_name and ref_name in chroms:
-                    read.query_name = read.query_name.replace('NOT_FOUND', 'RPM')
+                if "dna" in args.kind.lower() and "rna" in args.kind.lower():
                     output_file.write(read)
                     out_count += 1
-                else:
-                    filtered_count += 1
+                elif "rna" in args.kind.lower():
+                    ref_name = read.reference_name if 'chr' in read.reference_name else 'chr' + read.reference_name 
+                    if "NOT_FOUND" in read.query_name and ref_name in chroms:
+                        read.query_name = read.query_name.replace('NOT_FOUND', 'RPM')
+                        output_file.write(read)
+                        out_count += 1
+                    else:
+                        filtered_count += 1
 
         output_file.close()
 
