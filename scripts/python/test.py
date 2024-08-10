@@ -1,6 +1,8 @@
 from tag_bam import *
+from threshold_tag_and_split import *
+# input_bam = "/central/scratchio/mblanco/albert/workup/alignments/RD_CD_1-1.merged.RPM.untagged.bam"
+output_bam = "/central/scratchio/mblanco/albert/workup/alignments/RD_CD_1-1.merged.BPM.bam"
 
-input_bam = "/home/zyang4/chipdip-spidr/workup/alignments/subset_mixed.merged.DNA.untagged.bam"
-output_bam = "/home/zyang4/chipdip-spidr/workup/alignments/subset_mixed.merged.DNA.bam"
-
-label_bam_file_mixed(input_bam=input_bam, output_bam=output_bam, num_tags=9)
+# label_bam_file_mixed(input_bam=input_bam, output_bam=output_bam, num_tags=9)
+a = "dna" in "dna, rna".lower()
+print(a)

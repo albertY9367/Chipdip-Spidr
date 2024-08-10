@@ -1,17 +1,17 @@
 # Email to which errors will be sent
-email: ""
+email: "ayang@lncrna.caltech.edu"
 
 # Path to barcoding config file
 bID: "settings_mixed/config_mixed.txt"
 # Path to barcoding format file
 # format: "example_format.txt"
 # Path to samples JSON file, e.g., as produced with the fastq2json.py script
-samples: "settings_mixed/samples_mixed.json"
+samples: "settings_mixed/samples_full.json"
 
 # Scripts directory
 scripts_dir: "scripts/"
 # Output directory
-output_dir: ""
+output_dir: "/central/scratchio/mblanco/albert"
 # Temporary directory
 temp_dir: "/central/scratch/"
 
@@ -23,7 +23,7 @@ conda_env: "chipdip"
 path_chrom_map: "chrom_map.txt"
 
 # Number of chunks to split FASTQ reads into for parallel processing
-num_chunks: 2
+num_chunks: 10
 
 # Files for cutadapt
 cutadapt_dpm: "assets/dpm96.fasta"
@@ -34,11 +34,12 @@ cutadapt_oligos: "assets/bpm.fasta"
 mask: "assets/blacklist_mm10.bed"
 
 #Currently "mm10" and "hg38" available
-assembly: "hg38"
+assembly: "mm10"
 
 # Bowtie2 indexes for aligning DNA reads
 # e.g., "assets/index_hg38/GRCh38_noalt_as" or "assets/index_mm10/mm10"
 bowtie2_index_dna: "/central/scratchio/mblanco/albert/index_mm10/index_mm10/mm10"
+
 #Bowtie2 Indexes
 bowtie2_index_rna:
     hg38: "/groups/guttman/jguo/genomes/ncRNA_bt2/ncRNA"

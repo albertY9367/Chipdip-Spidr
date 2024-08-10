@@ -1,7 +1,7 @@
 #!/bin/bash
 
 snakemake \
---snakefile Snakefile \
+--snakefile Snakefile_post.smk \
 --configfile settings_mixed/config_mixed.yaml \
 --use-conda \
 --conda-frontend conda \

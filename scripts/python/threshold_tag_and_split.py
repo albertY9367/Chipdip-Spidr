@@ -13,12 +13,18 @@ def parse_args():
         description="Add antibody label to DNA bamfile and generate individual bamfiles for each antibody"
     )
     parser.add_argument(
-        "-i",
-        "--input_bam",
-        dest="input_bam",
+        "--input_dna",
+        dest="input_dna",
         type=str,
         required=True,
         help="Master aligned DNA Bamfile",
+    )
+    parser.add_argument(
+        "--input_rna",
+        dest="input_rna",
+        type=str,
+        required=True,
+        help="Master aligned RNA Bamfile",
     )
     parser.add_argument(
         "-c",
@@ -27,6 +33,20 @@ def parse_args():
         type=str,
         required=True,
         help="Master aligned cluster Bamfile",
+    )
+    parser.add_argument(
+        "--output_dna",
+        dest="output_dna",
+        type=str,
+        required=True,
+        help="Path to output DNA bam with antibody tag added",
+    )
+    parser.add_argument(
+        "--output_rna",
+        dest="output_rna",
+        type=str,
+        required=True,
+        help="Path to output RNA bam with antibody tag added",
     )
     parser.add_argument(
         "-o",
@@ -66,13 +86,6 @@ def parse_args():
         required=True,
         help="The maximum cluster size to keep",
     )
-    parser.add_argument(
-        "--num_tags",
-        action="store",
-        type=int,
-        required=True,
-        help="The number of tags to consider",
-    )
 
     return parser.parse_args()
 
@@ -86,7 +99,9 @@ def main():
     RG_dict = assign_labels(
         args.cluster_bam, args.min_oligos, args.proportion, args.max_size
     )
-    label_bam_file(args.input_bam, args.output_bam, RG_dict, args.num_tags)
+    label_bam_file(args.input_dna, args.output_dna, RG_dict)
+    label_bam_file(args.input_rna, args.output_rna, RG_dict)
+    pysam.merge("-o", args.output_bam, args.output_dna, args.output_rna)
     split_bam_by_RG(args.output_bam, args.dir)
 
 
@@ -107,9 +122,9 @@ def assign_labels(bamfile, min_oligos, threshold, max_size):
             read_type = read.get_tag("RT")
             barcode = read.get_tag("RC")
             try:
-                chromesome = read.reference_name
                 total_dict[barcode] += 1
                 if "BEAD" in read_type or "BPM" in read_type:
+                    chromesome = read.reference_name
                     beads_dict[barcode].add((chromesome, str(count)))
             except KeyError:
                 pass
@@ -135,10 +150,10 @@ def assign_labels(bamfile, min_oligos, threshold, max_size):
         else:
             RG_dict[bc] = candidate[0]
             continue
-        RG_dict[bc] = "malformed"
+        
     return RG_dict
 
-def label_bam_file(input_bam, output_bam, labels, num_tags):
+def label_bam_file(input_bam, output_bam, labels):
     """
     Add antibody label to individual reads of the master DNA bam file
 
@@ -151,7 +166,6 @@ def label_bam_file(input_bam, output_bam, labels, num_tags):
     count, duplicates, skipped = 0, 0, 0
     written = defaultdict(int)
     header = construct_read_group_header(input_bam, labels)
-    found = defaultdict(set)
     with pysam.AlignmentFile(input_bam, "rb") as in_bam, \
          pysam.AlignmentFile(output_bam, "wb", header=header) as out_bam:
         for read in in_bam.fetch(until_eof=True):
@@ -159,18 +173,13 @@ def label_bam_file(input_bam, output_bam, labels, num_tags):
             if count % 10000000 == 0:
                 print(count)
             full_barcode = read.get_tag("RC")
-            position = read.reference_name + ":" + str(read.reference_start) + '-' + str(read.reference_end)
-            if position in found[full_barcode]:
-                duplicates += 1
-            else:
-                try:
-                    readlabel = labels[full_barcode]
-                    found[full_barcode].add(position)
-                    read.set_tag("RG", readlabel, replace=True)
-                    out_bam.write(read)
-                    written[readlabel] += 1
-                except KeyError:
-                    skipped += 1
+            try:
+                readlabel = labels[full_barcode]
+                read.set_tag("RG", readlabel, replace=True)
+                out_bam.write(read)
+                written[readlabel] += 1
+            except KeyError:
+                skipped += 1
 
     print("Total reads:", count)
     print("Reads written:", written)

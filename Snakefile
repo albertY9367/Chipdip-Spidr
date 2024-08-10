@@ -235,7 +235,6 @@ split_fastq = os.path.join(DIR_SCRIPTS, "bash/split_fastq.sh")
 barcode_id_jar = os.path.join(DIR_SCRIPTS, "java/BarcodeIdentification_v1.2.0.jar")
 lig_eff = os.path.join(DIR_SCRIPTS, "python/get_ligation_efficiency.py")
 split_bpm_rpm_dpm = os.path.join(DIR_SCRIPTS, "python/split_dpm_rpm_bpm_fq.py")
-# split_bpm_dpm = os.path.join(DIR_SCRIPTS, "python/split_dpm_bpm_fq.py")
 validate = os.path.join(DIR_SCRIPTS, "python/validate.py")
 rename_and_filter_chr = os.path.join(DIR_SCRIPTS, "python/rename_and_filter_chr.py")
 generate_dict = os.path.join(DIR_SCRIPTS, "python/generate_dict.py")
@@ -482,10 +481,15 @@ TAG_SAMP = expand(
 
 TAG_ALL = [os.path.join(DIR_WORKUP, "clusters/all.bam")]
 
-
+if merge_samples:
+    FINAL = TAG_ALL + TAG_SAMP + MERGE_SAMP_ALL \
+        + LE_LOG_ALL
+else:
+    FINAL = TAG_SAMP + MERGE_SAMP_ALL + LE_LOG_ALL
+    
 rule all:
     input:
-        TAG_ALL + TAG_SAMP + MERGE_SAMP_ALL if merge_samples else TAG_SAMP + MERGE_SAMP_ALL
+        FINAL
 
 # Send and email if an error occurs during execution
 onerror:
@@ -1055,7 +1059,7 @@ rule merge_rna:
         bt2 = expand(os.path.join(DIR_WORKUP, "alignments_parts/{{sample}}.part_{splitid}.bowtie2.sorted.mapped.chr.bam"), splitid=NUM_CHUNKS),
         star = expand(os.path.join(DIR_WORKUP, "alignments_parts/{{sample}}.part_{splitid}.Aligned.out.sorted.chr.bam"), splitid=NUM_CHUNKS)
     output:
-        untagged = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.untagged.bam"),
+        untagged = temp(os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.untagged.bam")),
         tagged = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam")
     params:
         dir = os.path.join(DIR_WORKUP, "alignments/")
@@ -1233,7 +1237,7 @@ rule merge_beads:
             os.path.join(DIR_WORKUP, "alignments_parts/{{sample}}.part_{splitid}.BPM.bam"),
             splitid=NUM_CHUNKS)
     output:
-        untagged = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.BPM.untagged.bam"),
+        untagged = temp(os.path.join(DIR_WORKUP, "alignments/{sample}.merged.BPM.untagged.bam")),
         tagged = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.BPM.bam")
     params:
         dir = os.path.join(DIR_WORKUP, "alignments/")

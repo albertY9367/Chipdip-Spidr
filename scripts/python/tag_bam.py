@@ -129,19 +129,24 @@ def label_bam_file_mixed(input_bam, output_bam, num_tags):
             barcode = full_barcode[1:-1]
             ref_barcode = ".".join(barcode)
             full_barcode_str = ".".join(full_barcode)
-            read_type = rt_pattern.findall(full_barcode_str)[0]
-            if "DPM" in read_type:
+            read_type = rt_pattern.findall(full_barcode_str)
+            # TODO: if both RPM/DPM and BEAD, exclude the read
+            if len(read_type) > 1:
+                skipped += 1
+                continue
+            elif "DPM" in read_type[0]:
                 position = str(read.reference_name) + ":" + str(read.reference_start) + '-' + str(read.reference_end)
-            elif "RPM" in read_type:
+            elif "RPM" in read_type[0]:
                 position = str(read.reference_name) + ":" + str(read.reference_start)
-            elif "BPM" in read_type or "BEAD" in read_type:
-                position = read.reference_name + ":" + str(read.reference_start) + '-' + str(0)
+            elif "BPM" in read_type[0] or "BEAD" in read_type[0]:
+                position = str(read.reference_name) + ":" + str(read.reference_start)
+
             if position in found[ref_barcode]:
                 duplicates += 1
             else:
                 try:
                     found[ref_barcode].add(position)
-                    read.set_tag("RT", read_type, replace=True)
+                    read.set_tag("RT", read_type[0], replace=True)
                     read.set_tag("RC", ref_barcode, replace=True)
                     out_bam.write(read)
                     written += 1

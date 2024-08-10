@@ -1,0 +1,14 @@
+{
+    "RD_CD_1-1": {
+      "R1": ["/central/scratchio/mblanco/albert/RD_CD_1-1/RD_CD_1-1_R1.fastq.gz"],
+      "R2": ["/central/scratchio/mblanco/albert/RD_CD_1-1/RD_CD_1-1_R2.fastq.gz"]
+    },
+    "RD_CD_2-1": {
+      "R1": ["/central/scratchio/mblanco/albert/RD_CD_2-1/RD_CD_2-1_R1.fastq.gz"],
+      "R2": ["/central/scratchio/mblanco/albert/RD_CD_2-1/RD_CD_2-1_R2.fastq.gz"]
+    },
+    "RD_CD_2-2": {
+      "R1": ["/central/scratchio/mblanco/albert/RD_CD_2-2/RD_CD_2-2_R1.fastq.gz"],
+      "R2": ["/central/scratchio/mblanco/albert/RD_CD_2-2/RD_CD_2-2_R2.fastq.gz"]
+    }
+}
