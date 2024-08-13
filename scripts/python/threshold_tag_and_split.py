@@ -101,7 +101,7 @@ def main():
     )
     label_bam_file(args.input_dna, args.output_dna, RG_dict)
     label_bam_file(args.input_rna, args.output_rna, RG_dict)
-    pysam.merge("-o", args.output_bam, args.output_dna, args.output_rna)
+    pysam.merge("-c", "-o", args.output_bam, args.output_dna, args.output_rna)
     split_bam_by_RG(args.output_bam, args.dir)
 
 
