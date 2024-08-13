@@ -86,6 +86,13 @@ def parse_args():
         required=True,
         help="The maximum cluster size to keep",
     )
+    parser.add_argument(
+        "--type",
+        dest="type",
+        type=str,
+        required=True,
+        help="The type of experiment being done (DNA, RNA, both)"
+    )
 
     return parser.parse_args()
 
@@ -99,9 +106,15 @@ def main():
     RG_dict = assign_labels(
         args.cluster_bam, args.min_oligos, args.proportion, args.max_size
     )
-    label_bam_file(args.input_dna, args.output_dna, RG_dict)
-    label_bam_file(args.input_rna, args.output_rna, RG_dict)
-    pysam.merge("-c", "-o", args.output_bam, args.output_dna, args.output_rna)
+    if "dna" in args.type and "rna" in args.type:
+        label_bam_file(args.input_dna, args.output_dna, RG_dict)
+        label_bam_file(args.input_rna, args.output_rna, RG_dict)
+        # -c flag is necessary to not mess up RG tag values
+        pysam.merge("-c", "-o", args.output_bam, args.output_dna, args.output_rna)
+    elif "dna" in args.type:
+        label_bam_file(args.input_dna, args.output_bam, RG_dict)
+    elif "rna" in args.type:
+        label_bam_file(args.input_rna, args.output_bam, RG_dict)
     split_bam_by_RG(args.output_bam, args.dir)
 
 

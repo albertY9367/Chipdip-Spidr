@@ -1,8 +1,8 @@
 #!/bin/bash
 
 snakemake \
---snakefile Snakefile_post.smk \
---configfile settings_mixed/config_mixed.yaml \
+--snakefile Snakefile \
+--configfile settings_rna/config_rna.yaml \
 --use-conda \
 --conda-frontend conda \
 --printshellcmds \

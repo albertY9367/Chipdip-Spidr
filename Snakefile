@@ -481,11 +481,50 @@ TAG_SAMP = expand(
 
 TAG_ALL = [os.path.join(DIR_WORKUP, "clusters/all.bam")]
 
+CLUSTER_STATISTICS = [os.path.join(DIR_WORKUP, "clusters/cluster_statistics.txt")]
+
+if dna and rna:
+    CLUSTER_SIZES = [os.path.join(DIR_WORKUP, "clusters/DPM_read_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/DPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/RPM_read_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/RPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_read_distribution.pdf")]
+elif dna:
+    CLUSTER_SIZES = [os.path.join(DIR_WORKUP, "clusters/DPM_read_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/DPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_read_distribution.pdf")]
+elif rna:
+    CLUSTER_SIZES = [os.path.join(DIR_WORKUP, "clusters/RPM_read_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/RPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_cluster_distribution.pdf"),
+            os.path.join(DIR_WORKUP, "clusters/BPM_read_distribution.pdf")]
+
+ECDFS = [os.path.join(DIR_WORKUP, "clusters/Max_representation_ecdf.pdf"),
+         os.path.join(DIR_WORKUP, "clusters/Max_representation_counts.pdf")]
+
+if dna and rna:
+    SPLITBAMS = expand(
+        [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.mixed.labeled.bam"),
+        os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.mixed.labeled.bam"),
+        os.path.join(DIR_WORKUP, "alignments/{sample}.merged.mixed.labeled.bam")],
+        sample=ALL_SAMPLES)
+elif dna:
+    SPLITBAMS = expand(
+        [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.dna.labeled.bam")],
+        sample=ALL_SAMPLES)
+elif rna:
+    SPLITBAMS = expand(
+        [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.rna.labeled.bam")],
+        sample=ALL_SAMPLES)
+
+FINAL = TAG_SAMP + MERGE_SAMP_ALL + LE_LOG_ALL \
+    + CLUSTER_STATISTICS + ECDFS \
+    + CLUSTER_SIZES + SPLITBAMS
+
 if merge_samples:
-    FINAL = TAG_ALL + TAG_SAMP + MERGE_SAMP_ALL \
-        + LE_LOG_ALL
-else:
-    FINAL = TAG_SAMP + MERGE_SAMP_ALL + LE_LOG_ALL
+    FINAL += TAG_ALL
     
 rule all:
     input:
@@ -1314,4 +1353,118 @@ rule multiqc:
     shell:
         '''
         multiqc -f -o "{params.dir_qc}" "{DIR_WORKUP}" &> "{log}"
+        '''
+
+##############################################################################
+# Profile clusters
+##############################################################################
+
+# Generate all statistics
+rule generate_all_statistics:
+    input:
+        TAG_ALL + TAG_SAMP if merge_samples else TAG_SAMP
+    output:
+        CLUSTER_STATISTICS + ECDFS + CLUSTER_SIZES
+    log:
+        os.path.join(DIR_LOGS, "generate_all_statistics.log")
+    params:
+        dir = os.path.join(DIR_WORKUP, "clusters")
+    conda:
+        conda_env
+    shell:
+        '''
+        python "{generate_all_statistics}" --directory "{params.dir}" --pattern .bam  \
+            --xlim 30 --type "{choose_dna_rna}" &> "{log}"
+        '''
+
+##############################################################################
+# Splitbams
+##############################################################################
+
+# Generate bam files for individual targets based on assignments from clusterfile
+rule thresh_and_split_mixed:
+    input:
+        bam_dna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
+        bam_rna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
+        clusters = os.path.join(DIR_WORKUP, "clusters/{sample}.bam")
+    output:
+        dna = temp(os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.mixed.labeled.bam")),
+        rna = temp(os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.mixed.labeled.bam")),
+        bam = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.mixed.labeled.bam")
+    log:
+        os.path.join(DIR_LOGS, "{sample}.splitbams.log")
+    params:
+        dir_splitbams = os.path.join(DIR_WORKUP, "splitbams")
+    conda:
+        conda_env
+    shell:
+        '''
+        python "{tag_and_split}" \
+         --input_dna "{input.bam_dna}" \
+         --input_rna "{input.bam_rna}" \
+         -c "{input.clusters}" \
+         --output_dna "{output.dna}" \
+         --output_rna "{output.rna}" \
+         -o "{output.bam}" \
+         -d "{params.dir_splitbams}" \
+         --min_oligos {min_oligos} \
+         --proportion {proportion} \
+         --max_size {max_size} \
+         --type "{choose_dna_rna}" &> "{log}"
+        '''
+
+rule thresh_and_split_dna:
+    input:
+        bam_dna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
+        clusters = os.path.join(DIR_WORKUP, "clusters/{sample}.bam")
+    output:
+        bam = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.dna.labeled.bam")
+    log:
+        os.path.join(DIR_LOGS, "{sample}.splitbams.log")
+    params:
+        dir_splitbams = os.path.join(DIR_WORKUP, "splitbams")
+    conda:
+        conda_env
+    shell:
+        '''
+        python "{tag_and_split}" \
+         --input_dna "{input.bam_dna}" \
+         --input_rna "" \
+         -c "{input.clusters}" \
+         --output_dna "" \
+         --output_rna "" \
+         -o "{output.bam}" \
+         -d "{params.dir_splitbams}" \
+         --min_oligos {min_oligos} \
+         --proportion {proportion} \
+         --max_size {max_size} \
+         --type "{choose_dna_rna}" &> "{log}"
+        '''
+
+rule thresh_and_split_rna:
+    input:
+        bam_rna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
+        clusters = os.path.join(DIR_WORKUP, "clusters/{sample}.bam")
+    output:
+        bam = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.rna.labeled.bam")
+    log:
+        os.path.join(DIR_LOGS, "{sample}.splitbams.log")
+    params:
+        dir_splitbams = os.path.join(DIR_WORKUP, "splitbams")
+    conda:
+        conda_env
+    shell:
+        '''
+        python "{tag_and_split}" \
+         --input_dna "" \
+         --input_rna "{input.bam_rna}" \
+         -c "{input.clusters}" \
+         --output_dna "" \
+         --output_rna "" \
+         -o "{output.bam}" \
+         -d "{params.dir_splitbams}" \
+         --min_oligos {min_oligos} \
+         --proportion {proportion} \
+         --max_size {max_size} \
+         --type "{choose_dna_rna}" &> "{log}"
         '''
