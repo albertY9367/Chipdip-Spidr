@@ -519,6 +519,12 @@ elif rna:
         [os.path.join(DIR_WORKUP, "alignments/{sample}.merged.rna.labeled.bam")],
         sample=ALL_SAMPLES)
 
+if rna:
+    if single_end:
+        RNA_BAM = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.single.RPM.bam")
+    else:
+        RNA_BAM = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam")
+
 FINAL = TAG_SAMP + MERGE_SAMP_ALL + LE_LOG_ALL \
     + CLUSTER_STATISTICS + ECDFS \
     + CLUSTER_SIZES + SPLITBAMS
@@ -1107,7 +1113,7 @@ rule merge_rna:
     threads:
         8
     log:
-        os.path.join(DIR_WORKUP, "logs/{sample}.merge_bams.log")
+        os.path.join(DIR_WORKUP, "logs/{sample}.merge_rna.log")
     shell:
         '''
         mkdir -p {params.dir}
@@ -1156,7 +1162,7 @@ rule bam_to_fq_single:
         "envs/sprite.yaml"
     shell:
         '''
-        samtools fastq -o {output.r1} -0 /dev/null -s /dev/null -n {input} 
+        samtools fastq -1 {output.r1} -0 /dev/null -s /dev/null -n {input} 
         '''
 
 rule star_align_single:
@@ -1168,7 +1174,7 @@ rule star_align_single:
         filtered = temp(os.path.join(DIR_WORKUP, "alignments_parts/{sample}.part_{splitid}.Aligned_single.out.bam"))
     params:
         STAR_OPTIONS = "--readFilesCommand zcat --alignEndsType EndToEnd --outFilterScoreMin 10 --outFilterMultimapNmax 1 --outFilterMismatchNmax 10 --alignIntronMax 100000 --alignMatesGapMax 1300 --alignIntronMin 80 --alignSJDBoverhangMin 5 --alignSJoverhangMin 8 --chimSegmentMin 20 --alignSJstitchMismatchNmax 5 -1 5 5 --outSAMunmapped Within --outReadsUnmapped Fastx", 
-        prefix = os.path.join(DIR_WORKUP, "alignments_parts/{sample}.part_{splitid}")
+        prefix = os.path.join(DIR_WORKUP, "alignments_parts/{sample}.part_{splitid}.")
     log:
         os.path.join(DIR_WORKUP, "logs/{sample}.{splitid}.star.log")
     threads:
@@ -1385,7 +1391,7 @@ rule generate_all_statistics:
 rule thresh_and_split_mixed:
     input:
         bam_dna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.bam"),
-        bam_rna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
+        bam_rna = RNA_BAM,
         clusters = os.path.join(DIR_WORKUP, "clusters/{sample}.bam")
     output:
         dna = temp(os.path.join(DIR_WORKUP, "alignments/{sample}.merged.DNA.mixed.labeled.bam")),
@@ -1443,7 +1449,7 @@ rule thresh_and_split_dna:
 
 rule thresh_and_split_rna:
     input:
-        bam_rna = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam"),
+        bam_rna = RNA_BAM,
         clusters = os.path.join(DIR_WORKUP, "clusters/{sample}.bam")
     output:
         bam = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.rna.labeled.bam")

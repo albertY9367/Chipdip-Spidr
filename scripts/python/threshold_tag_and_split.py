@@ -176,7 +176,7 @@ def label_bam_file(input_bam, output_bam, labels):
         labels(dict): Dictionary of cluster assignments [barcode-> antibody]
         num_tags(int): number of tags in barcode
     """
-    count, duplicates, skipped = 0, 0, 0
+    count, skipped = 0, 0
     written = defaultdict(int)
     header = construct_read_group_header(input_bam, labels)
     with pysam.AlignmentFile(input_bam, "rb") as in_bam, \
@@ -196,7 +196,6 @@ def label_bam_file(input_bam, output_bam, labels):
 
     print("Total reads:", count)
     print("Reads written:", written)
-    print("Duplicate reads:", duplicates)
     print("Reads with an error not written out:", skipped)
 
 

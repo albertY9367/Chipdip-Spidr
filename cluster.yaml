@@ -82,6 +82,13 @@ star_align:
     nodes: 1
     output: "workup/logs/cluster/{rule}.{wildcards.sample}.{wildcards.splitid}.out"
     error: "workup/logs/cluster/{rule}.{wildcards.sample}.{wildcards.splitid}.err"
+star_align_single:
+    time: "12:00:00"
+    mem: 50g
+    cpus: 10
+    nodes: 1
+    output: "workup/logs/cluster/{rule}.{wildcards.sample}.{wildcards.splitid}.out"
+    error: "workup/logs/cluster/{rule}.{wildcards.sample}.{wildcards.splitid}.err"
 merge_dna:
     time: "24:00:00"
     mem: 50g
