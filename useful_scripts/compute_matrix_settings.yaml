@@ -1,0 +1,13 @@
+# whether csv file specifies absolute path
+absolute_path: False
+# computeMatrix mode
+mode: "scale-regions"
+
+# the below settings are required only if absolute_path is false
+
+# path to folder with bed files
+bed_folder: "/central/scratchio/mblanco/albert/workup/bed/"
+# path to folder with bigwig files
+bigwig_folder: "/central/scratchio/mblanco/albert/workup/bigwigs/"
+# path to folder to store output files
+output_folder: "/central/scratchio/mblanco/albert/workup/bed/"

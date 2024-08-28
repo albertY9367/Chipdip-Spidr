@@ -137,7 +137,7 @@ def label_bam_file_mixed(input_bam, output_bam, num_tags):
             elif "DPM" in read_type[0]:
                 position = str(read.reference_name) + ":" + str(read.reference_start) + '-' + str(read.reference_end)
             elif "RPM" in read_type[0]:
-                position = str(read.reference_name) + ":" + str(read.reference_start)
+                position = str(read.reference_name) + ":" + str(read.reference_start) + '-' + str(read.reference_end)
             elif "BPM" in read_type[0] or "BEAD" in read_type[0]:
                 position = str(read.reference_name) + ":" + str(read.reference_start)
 
