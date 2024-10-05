@@ -524,6 +524,8 @@ if rna:
         RNA_BAM = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.single.RPM.bam")
     else:
         RNA_BAM = os.path.join(DIR_WORKUP, "alignments/{sample}.merged.RPM.bam")
+else:
+    RNA_BAM = ""
 
 FINAL = TAG_SAMP + MERGE_SAMP_ALL + LE_LOG_ALL \
     + CLUSTER_STATISTICS + ECDFS \

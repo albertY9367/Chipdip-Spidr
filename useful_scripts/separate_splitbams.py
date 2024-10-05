@@ -54,6 +54,11 @@ def main():
         dna = True
     if "rna" in args.type.lower():
         rna = True
+    if ("dna" not in args.type.lower()) and \
+        ("rna" not in args.type.lower()):
+        print("Type of reads is not acceptable")
+        print("It must include string dna and/or rna")
+        exit()
     pathname = os.path.join(args.dir, "*" + args.format)
     files = glob.glob(pathname=pathname)
     for file in files:

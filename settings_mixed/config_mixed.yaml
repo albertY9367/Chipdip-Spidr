@@ -65,3 +65,5 @@ star_index:
     hg38: "/groups/guttman/genomes/homo_sapiens/hg38"
 
 choose_dna_rna: "dna, rna"
+
+single_end: false
